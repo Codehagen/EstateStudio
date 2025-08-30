@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { signOut } from "@/lib/auth-client";
+import { signOut } from "@/actions/auth-actions";
 import Link from "next/link";
 
 export default async function Dashboard() {
@@ -175,18 +175,15 @@ export default async function Dashboard() {
 
 // Client component for sign out button
 function SignOutButton() {
-  "use client";
-  
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={async () => {
-        await signOut();
-        window.location.href = "/";
-      }}
-    >
-      Sign Out
-    </Button>
+    <form action={signOut}>
+      <Button
+        type="submit"
+        variant="outline"
+        size="sm"
+      >
+        Sign Out
+      </Button>
+    </form>
   );
 }

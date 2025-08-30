@@ -17,6 +17,7 @@ import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/auth-client";
+import { createWorkspaceForUser } from "@/actions/workspace-actions";
 
 export default function SignUp() {
   const [firstName, setFirstName] = useState("");
@@ -24,6 +25,8 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [organizationNumber, setOrganizationNumber] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const router = useRouter();
@@ -77,6 +80,34 @@ export default function SignUp() {
               />
             </div>
           </div>
+          
+          {/* Business Information */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700">Business Information</h3>
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="company-name">Company Name</Label>
+                <Input
+                  id="company-name"
+                  placeholder="Your Business AS"
+                  required
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  value={companyName}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="org-number">Organization Number</Label>
+                <Input
+                  id="org-number"
+                  placeholder="123 456 789"
+                  required
+                  onChange={(e) => setOrganizationNumber(e.target.value)}
+                  value={organizationNumber}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -150,27 +181,52 @@ export default function SignUp() {
             className="w-full"
             disabled={loading}
             onClick={async () => {
-              await signUp.email({
-                email,
-                password,
-                name: `${firstName} ${lastName}`,
-                image: image ? await convertImageToBase64(image) : "",
-                callbackURL: "/dashboard",
-                fetchOptions: {
-                  onResponse: () => {
-                    setLoading(false);
-                  },
-                  onRequest: () => {
-                    setLoading(true);
-                  },
-                  onError: (ctx) => {
-                    toast.error(ctx.error.message);
-                  },
-                  onSuccess: async () => {
-                    router.push("/dashboard");
-                  },
-                },
-              });
+              // Basic validation
+              if (!companyName.trim()) {
+                toast.error("Company name is required");
+                return;
+              }
+              if (!organizationNumber.trim()) {
+                toast.error("Organization number is required");
+                return;
+              }
+              if (password !== passwordConfirmation) {
+                toast.error("Passwords do not match");
+                return;
+              }
+
+              // Prepare business data
+              const businessData = {
+                firstName,
+                lastName,
+                companyName: companyName.trim(),
+                organizationNumber: organizationNumber.trim(),
+              };
+
+              try {
+                setLoading(true);
+                
+                // First, create the user account
+                await signUp.email({
+                  email,
+                  password,
+                  name: `${firstName} ${lastName}`,
+                  image: image ? await convertImageToBase64(image) : "",
+                });
+
+                // Then create workspace for the user
+                console.log('🏢 Creating workspace after successful signup...');
+                await createWorkspaceForUser(businessData);
+                
+                console.log('✅ Signup and workspace creation completed successfully');
+                toast.success("Account created successfully!");
+                router.push("/dashboard");
+              } catch (error) {
+                console.error('❌ Signup or workspace creation failed:', error);
+                toast.error(error instanceof Error ? error.message : "Failed to create account");
+              } finally {
+                setLoading(false);
+              }
             }}
           >
             {loading ? (
@@ -181,13 +237,6 @@ export default function SignUp() {
           </Button>
         </div>
       </CardContent>
-      <CardFooter>
-        <div className="flex justify-center w-full border-t py-4">
-          <p className="text-center text-xs text-neutral-500">
-            Secured by <span className="text-orange-400">better-auth.</span>
-          </p>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

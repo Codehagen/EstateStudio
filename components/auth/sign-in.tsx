@@ -17,12 +17,15 @@ import { Loader2, Key } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { signIn } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const router = useRouter();
 
   return (
     <Card className="max-w-md">
@@ -92,6 +95,13 @@ export default function SignIn() {
                   },
                   onResponse: (ctx) => {
                     setLoading(false);
+                  },
+                  onSuccess: () => {
+                    toast.success("Successfully signed in!");
+                    router.push("/dashboard");
+                  },
+                  onError: (ctx) => {
+                    toast.error(ctx.error.message || "Failed to sign in");
                   },
                 }
               );
