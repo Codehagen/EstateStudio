@@ -13,3 +13,275 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// User model - compatible with Better Auth
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  avatar        String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  workspaces        WorkspaceMember[]
+  ownedWorkspaces   Workspace[]        @relation("WorkspaceOwner")
+  createdProjects   Project[]
+  uploadedPhotos    Photo[]
+  photoEdits        PhotoEdit[]
+  sentInvitations   WorkspaceInvitation[] @relation("InvitedBy")
+  invitedMembers    WorkspaceMember[]     @relation("InvitedBy")
+
+  @@index([email])
+}
+
+// Workspace - central entity for teams and billing
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique // URL-friendly identifier
+  description String?
+  
+  // Owner
+  ownerId     String
+  owner       User     @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  // Billing Information
+  billingEmail    String?
+  companyName     String?
+  vatNumber       String?
+  billingAddress  String?
+  
+  // Subscription & Limits
+  subscriptionTier SubscriptionTier @default(FREE)
+  monthlyEditLimit Int             @default(10)
+  currentMonthEdits Int            @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members     WorkspaceMember[]
+  projects    Project[]
+  photos      Photo[]
+  invoices    Invoice[]
+  invitations WorkspaceInvitation[]
+
+  @@index([slug])
+  @@index([ownerId])
+}
+
+// Many-to-many relationship between User and Workspace
+model WorkspaceMember {
+  userId      String
+  workspaceId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  role        WorkspaceRole @default(VIEWER)
+  joinedAt    DateTime      @default(now())
+  
+  // Who invited this member
+  invitedById String?
+  invitedBy   User?   @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@id([userId, workspaceId])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+// Project - organize photo editing sessions
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  
+  status      ProjectStatus @default(ACTIVE)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  photos      Photo[]
+
+  @@index([workspaceId])
+  @@index([createdById])
+}
+
+// Original photo uploads
+model Photo {
+  id          String   @id @default(cuid())
+  filename    String
+  url         String   // Can be S3 URL or base64 data URI
+  
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  
+  // Metadata
+  fileSize    Int      // in bytes
+  width       Int?
+  height      Int?
+  format      String?  // jpeg, png, webp
+  
+  createdAt   DateTime @default(now())
+
+  // Relations
+  edits       PhotoEdit[]
+
+  @@index([projectId])
+  @@index([workspaceId])
+  @@index([uploadedById])
+}
+
+// AI-edited versions of photos
+model PhotoEdit {
+  id          String   @id @default(cuid())
+  
+  photoId     String
+  photo       Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  
+  editedUrl   String   // URL to edited image
+  prompt      String   // The prompt used for editing
+  modelUsed   String   // e.g., "fal-ai/nano-banana/edit"
+  
+  cost        Float    @default(0.039) // Cost in USD
+  
+  editedById  String?
+  editedBy    User?    @relation(fields: [editedById], references: [id], onDelete: SetNull)
+  
+  // Metadata
+  width       Int?
+  height      Int?
+  format      String?
+  
+  createdAt   DateTime @default(now())
+
+  // Relations
+  invoiceItems InvoiceItem[]
+
+  @@index([photoId])
+  @@index([editedById])
+  @@index([createdAt])
+}
+
+// Monthly invoices for workspace usage
+model Invoice {
+  id          String   @id @default(cuid())
+  
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  // Billing period
+  month       Int      // 1-12
+  year        Int      // e.g., 2025
+  
+  totalAmount Float    @default(0)
+  itemCount   Int      @default(0)
+  
+  status      InvoiceStatus @default(PENDING)
+  
+  dueDate     DateTime
+  paidAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  items       InvoiceItem[]
+
+  @@unique([workspaceId, month, year])
+  @@index([workspaceId])
+  @@index([status])
+}
+
+// Line items in an invoice
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  photoEditId String
+  photoEdit   PhotoEdit @relation(fields: [photoEditId], references: [id])
+  
+  description String
+  amount      Float
+  
+  createdAt   DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([photoEditId])
+}
+
+// Workspace invitations
+model WorkspaceInvitation {
+  id          String   @id @default(cuid())
+  
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  email       String
+  role        WorkspaceRole @default(VIEWER)
+  
+  token       String   @unique @default(cuid())
+  
+  invitedById String
+  invitedBy   User     @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+  
+  status      InvitationStatus @default(PENDING)
+  
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([workspaceId])
+}
+
+// Enums
+enum SubscriptionTier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
