@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey, isValidBase64DataUri } from '@/lib/fal-client';
 import { FAL_CONFIG, EDIT_CONFIG } from '@/lib/constants';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
+import prisma from '@/lib/prisma';
 
 interface EditRequest {
   image: string; // base64 image
@@ -26,6 +29,21 @@ interface FalNanoBananaResponse {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    if (!session) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Unauthorized. Please sign in to use the photo editor.' 
+        },
+        { status: 401 }
+      );
+    }
+
     // Validate API key
     if (!validateApiKey()) {
       return NextResponse.json(
@@ -93,6 +111,77 @@ export async function POST(request: NextRequest) {
 
       // Return the first edited image
       const editedImage = result.images[0];
+
+      try {
+        // Get user's workspace and project
+        const workspace = await prisma.workspace.findFirst({
+          where: {
+            members: {
+              some: {
+                userId: session.user.id,
+              },
+            },
+          },
+          include: {
+            projects: {
+              where: {
+                status: 'ACTIVE',
+              },
+              take: 1,
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+        });
+
+        if (workspace && workspace.projects.length > 0) {
+          const project = workspace.projects[0];
+          
+          // Create photo record
+          const photo = await prisma.photo.create({
+            data: {
+              filename: `photo-${Date.now()}.jpg`,
+              url: image, // Original base64 image
+              projectId: project.id,
+              workspaceId: workspace.id,
+              uploadedById: session.user.id,
+              fileSize: Math.round(image.length * 0.75), // Approximate base64 size
+              format: 'jpeg',
+            },
+          });
+
+          // Create photo edit record
+          await prisma.photoEdit.create({
+            data: {
+              photoId: photo.id,
+              editedUrl: editedImage.url,
+              prompt: enhancedPrompt,
+              modelUsed: FAL_CONFIG.MODEL_NAME,
+              cost: EDIT_CONFIG.COST_PER_IMAGE,
+              editedById: session.user.id,
+              width: editedImage.width,
+              height: editedImage.height,
+              format: falRequest.output_format,
+            },
+          });
+
+          // Update workspace edit count
+          await prisma.workspace.update({
+            where: {
+              id: workspace.id,
+            },
+            data: {
+              currentMonthEdits: {
+                increment: 1,
+              },
+            },
+          });
+        }
+      } catch (dbError) {
+        console.error('Error saving photo edit to database:', dbError);
+        // Don't fail the request if database save fails
+      }
 
       return NextResponse.json({
         success: true,

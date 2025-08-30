@@ -25,17 +25,26 @@ export default function Home() {
           </p>
 
           <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/photo-editor">
+            <Link href="/dashboard">
               <Button size="lg" className="gap-2 px-8 py-4 text-lg">
                 <Camera className="h-5 w-5" />
                 Start Editing
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-4 text-lg">
-              View Examples
-            </Button>
+            <Link href="/sign-in">
+              <Button size="lg" variant="outline" className="px-8 py-4 text-lg">
+                Sign In
+              </Button>
+            </Link>
           </div>
+          
+          <p className="text-sm text-muted-foreground">
+            New here?{" "}
+            <Link href="/sign-up" className="text-blue-600 hover:text-blue-500 underline">
+              Create a free account
+            </Link>
+          </p>
         </div>
 
         {/* Features Grid */}
@@ -83,7 +92,7 @@ export default function Home() {
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of real estate professionals using AI to create stunning property photos that sell faster.
           </p>
-          <Link href="/photo-editor">
+          <Link href="/dashboard">
             <Button size="lg" className="gap-2 px-12 py-4 text-xl">
               <Sparkles className="h-6 w-6" />
               Get Started Now
