@@ -8,6 +8,7 @@ import prisma from '@/lib/prisma';
 interface EditRequest {
   image: string; // base64 image
   prompt: string;
+  projectId?: string; // Optional project ID for better organization
 }
 
 interface FalNanoBananaRequest {
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: EditRequest = await request.json();
-    const { image, prompt } = body;
+    const { image, prompt, projectId } = body;
 
     // Validate request
     if (!image || !prompt) {
@@ -135,14 +136,44 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        if (workspace && workspace.projects.length > 0) {
-          const project = workspace.projects[0];
+        if (workspace) {
+          // Use provided projectId or fallback to the first project
+          let project;
+          if (projectId) {
+            project = await prisma.project.findFirst({
+              where: {
+                id: projectId,
+                workspaceId: workspace.id,
+                status: 'ACTIVE',
+              },
+            });
+          }
+          
+          if (!project && workspace.projects.length > 0) {
+            project = workspace.projects[0];
+          }
+          
+          // Create a default project if none exists
+          if (!project) {
+            project = await prisma.project.create({
+              data: {
+                name: 'Default Project',
+                description: 'Auto-created project for photo edits',
+                workspaceId: workspace.id,
+                createdById: session.user.id,
+              },
+            });
+          }
           
           // Create photo record
+          // TODO: Implement Cloudflare R2 storage
+          // 1. Upload base64 image to Cloudflare R2
+          // 2. Store the R2 URL instead of base64 data
+          // 3. This will significantly reduce database size and improve performance
           const photo = await prisma.photo.create({
             data: {
               filename: `photo-${Date.now()}.jpg`,
-              url: image, // Original base64 image
+              url: image, // TODO: Replace with Cloudflare R2 URL after upload
               projectId: project.id,
               workspaceId: workspace.id,
               uploadedById: session.user.id,
@@ -152,10 +183,15 @@ export async function POST(request: NextRequest) {
           });
 
           // Create photo edit record
+          // TODO: When implementing Cloudflare R2:
+          // 1. Download the edited image from Fal.ai URL
+          // 2. Upload to Cloudflare R2
+          // 3. Store the R2 URL instead of Fal.ai URL
+          // 4. This ensures we own the data and URLs don't expire
           await prisma.photoEdit.create({
             data: {
               photoId: photo.id,
-              editedUrl: editedImage.url,
+              editedUrl: editedImage.url, // TODO: Replace with Cloudflare R2 URL after downloading from Fal.ai
               prompt: enhancedPrompt,
               modelUsed: FAL_CONFIG.MODEL_NAME,
               cost: EDIT_CONFIG.COST_PER_IMAGE,

@@ -133,7 +133,7 @@ export default async function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/photo-editor">
+            <Link href="/dashboard/editor">
               <Button size="lg">
                 Open Photo Editor
               </Button>
