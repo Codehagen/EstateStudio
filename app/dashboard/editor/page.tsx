@@ -1,7 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { PhotoEditorWrapper } from "@/components/PhotoEditorWrapper";
 
 export default async function EditorPage() {
   const session = await getSession();
@@ -10,22 +9,12 @@ export default async function EditorPage() {
     redirect("/sign-in");
   }
 
-  // Get user's workspace and projects
+  // Get user's workspace
   const workspace = await prisma.workspace.findFirst({
     where: {
       members: {
         some: {
           userId: session.user.id,
-        },
-      },
-    },
-    include: {
-      projects: {
-        where: {
-          status: "ACTIVE",
-        },
-        orderBy: {
-          createdAt: "desc",
         },
       },
     },
@@ -35,50 +24,22 @@ export default async function EditorPage() {
     redirect("/dashboard");
   }
 
-  // Create a default project if none exists
-  let currentProject = workspace.projects[0];
-  if (!currentProject) {
-    currentProject = await prisma.project.create({
-      data: {
-        name: "Default Project",
-        description: "Your first photo editing project",
-        workspaceId: workspace.id,
-        createdById: session.user.id,
-      },
-    });
-  }
-
-  // Get recent photo edits for the workspace
-  const recentEdits = await prisma.photoEdit.findMany({
-    where: {
-      photo: {
-        workspaceId: workspace.id,
-      },
+  // Always create a new project for a new property
+  const today = new Date().toLocaleDateString('no-NO', { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  });
+  
+  const newProject = await prisma.project.create({
+    data: {
+      name: `Ny eiendom - ${today}`,
+      description: "Klikk for å endre adresse",
+      workspaceId: workspace.id,
+      createdById: session.user.id,
     },
-    include: {
-      photo: {
-        select: {
-          id: true,
-          filename: true,
-          url: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 10,
   });
 
-  return (
-    <div className="container mx-auto p-6">
-      <PhotoEditorWrapper
-        workspace={workspace}
-        currentProject={currentProject}
-        projects={workspace.projects}
-        recentEdits={recentEdits}
-        userId={session.user.id}
-      />
-    </div>
-  );
+  // Redirect to the project-specific page
+  redirect(`/dashboard/editor/${newProject.id}`);
 }

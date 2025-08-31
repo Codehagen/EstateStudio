@@ -7,103 +7,109 @@ export interface EditPrompt {
 }
 
 export const realEstatePrompts: EditPrompt[] = [
-  // Staging prompts
+  // Møblering (Staging) prompts
   {
-    id: 'modern-staging',
-    label: 'Modern Staging',
-    prompt: 'Add modern furniture staging with neutral colors, including contemporary sofa, coffee table, and minimal decor',
+    id: 'scandinavian-design',
+    label: 'Skandinavisk design',
+    prompt: 'Møbler rommet med skandinavisk design - lyse trefarger, minimalistisk stil, funksjonelle møbler, naturlige materialer. Ikke plasser møbler foran dører eller vinduer. Bruk hvite og beige farger med enkle, rene linjer',
     category: 'staging',
   },
   {
-    id: 'luxury-staging',
-    label: 'Luxury Staging',
-    prompt: 'Stage with high-end furniture, designer pieces, artwork, and premium finishes',
+    id: 'modern-norwegian',
+    label: 'Moderne norsk',
+    prompt: 'Legg til moderne norske møbler med lyse farger, rene linjer og naturlige tekstiler. Inkluder designklassikere og funksjonelle løsninger som passer norske hjem',
     category: 'staging',
   },
   {
-    id: 'cozy-staging',
-    label: 'Cozy Staging',
-    prompt: 'Add warm, inviting furniture with soft textures, throw pillows, and comfortable seating',
+    id: 'cozy-interior',
+    label: 'Koselig interiør',
+    prompt: 'Skap et koselig interiør med myke tekstiler, ulltepper, puter og komfortable møbler. Legg til stearinlys og varme elementer for hygge-stemning',
+    category: 'staging',
+  },
+  {
+    id: 'minimalist-nordic',
+    label: 'Minimalistisk nordisk',
+    prompt: 'Innred med minimalistisk nordisk stil - få, men velvalgte møbler, mye luft og rom, naturlige materialer som tre og lin',
     category: 'staging',
   },
   
-  // Lighting prompts
+  // Belysning (Lighting) prompts
   {
-    id: 'bright-natural',
-    label: 'Bright Natural Light',
-    prompt: 'Enhance with bright, natural lighting, remove shadows, and create a welcoming atmosphere',
+    id: 'natural-nordic-light',
+    label: 'Naturlig nordisk lys',
+    prompt: 'Forbedre med naturlig, nordisk lys - lyst og luftig atmosfære, myke skygger, behagelig dagslys som fremhever rommets beste sider',
     category: 'lighting',
   },
   {
-    id: 'golden-hour',
-    label: 'Golden Hour',
-    prompt: 'Add warm golden hour lighting with soft shadows and inviting ambiance',
+    id: 'warm-lighting',
+    label: 'Varm belysning',
+    prompt: 'Legg til varm, innbydende belysning som passer norske hjem. Skap en koselig atmosfære med godt balansert lys',
     category: 'lighting',
   },
   {
-    id: 'professional-lighting',
-    label: 'Professional Lighting',
-    prompt: 'Apply professional real estate photography lighting, bright and even throughout',
+    id: 'bright-daylight',
+    label: 'Klart dagslys',
+    prompt: 'Optimaliser dagslys for å vise rommets beste sider, fjern mørke hjørner, skap en frisk og innbydende atmosfære',
     category: 'lighting',
   },
   
-  // Declutter prompts
+  // Rydding (Declutter) prompts
   {
-    id: 'remove-clutter',
-    label: 'Remove Clutter',
-    prompt: 'Remove all personal items, clutter, and unnecessary objects, keep space clean and minimal',
+    id: 'scandinavian-minimalism',
+    label: 'Skandinavisk minimalisme',
+    prompt: 'Fjern unødvendige gjenstander, skap ren skandinavisk minimalisme med fokus på rom, lys og enkelhet',
     category: 'declutter',
   },
   {
     id: 'clean-surfaces',
-    label: 'Clean Surfaces',
-    prompt: 'Clean all surfaces, remove stains, dust, and imperfections, make everything pristine',
+    label: 'Rene flater',
+    prompt: 'Rydd alle overflater, fjern personlige eiendeler og rot, la rommets arkitektur og linjer komme frem',
     category: 'declutter',
   },
   {
-    id: 'organize-space',
-    label: 'Organize Space',
-    prompt: 'Organize and arrange items neatly, create a tidy and appealing environment',
+    id: 'organized-space',
+    label: 'Organisert rom',
+    prompt: 'Organiser rommet pent og ryddig, skap balanse og harmoni, behold kun essensielle elementer',
     category: 'declutter',
   },
   
-  // Exterior prompts
+  // Eksteriør (Exterior) prompts
   {
-    id: 'enhance-landscaping',
-    label: 'Enhance Landscaping',
-    prompt: 'Add beautiful landscaping with green lawn, flowers, and well-maintained plants',
+    id: 'norwegian-garden',
+    label: 'Norsk hage',
+    prompt: 'Forbedre hagen med norske planter, velstelt plen, naturstein og elementer som passer det norske klimaet',
     category: 'exterior',
   },
   {
-    id: 'blue-sky',
-    label: 'Perfect Sky',
-    prompt: 'Replace sky with clear blue sky, remove clouds, create perfect weather conditions',
+    id: 'nordic-facade',
+    label: 'Nordisk fasade',
+    prompt: 'Oppfrisk fasaden med rene linjer og moderne norsk stil, fjern skitt og slitasje, fremhev arkitektoniske detaljer',
     category: 'exterior',
   },
   {
-    id: 'curb-appeal',
-    label: 'Boost Curb Appeal',
-    prompt: 'Enhance curb appeal with fresh paint, clean driveway, and attractive entrance',
+    id: 'entrance-appeal',
+    label: 'Innbydende inngang',
+    prompt: 'Gjør inngangspartiet innbydende og velstelt med pent arrangerte planter, ren dørmatte og god belysning',
     category: 'exterior',
   },
   
-  // Repair prompts
+  // Oppussing (Repair) prompts
   {
-    id: 'fix-walls',
-    label: 'Fix Walls',
-    prompt: 'Repair wall damage, remove cracks, holes, and imperfections, apply fresh paint',
+    id: 'wall-refresh',
+    label: 'Oppfrisk vegger',
+    prompt: 'Reparer vegger, fjern skader og sprekker, mal i lyse, moderne farger som hvit, lys grå eller varm beige',
     category: 'repair',
   },
   {
-    id: 'update-fixtures',
-    label: 'Update Fixtures',
-    prompt: 'Replace outdated fixtures with modern alternatives, update hardware and fittings',
+    id: 'modern-upgrade',
+    label: 'Moderne oppgradering',
+    prompt: 'Oppgrader utdaterte elementer til moderne skandinavisk standard, bytt gamle armaturer og håndtak',
     category: 'repair',
   },
   {
-    id: 'refresh-paint',
-    label: 'Refresh Paint',
-    prompt: 'Apply fresh, neutral paint colors throughout, remove scuffs and marks',
+    id: 'surface-renewal',
+    label: 'Forny overflater',
+    prompt: 'Forny overflater med friske, lyse farger typisk for nordisk design, fjern slitasje og merker',
     category: 'repair',
   },
 ];
@@ -118,13 +124,13 @@ export function combinePrompts(...prompts: string[]): string {
 
 export function enhancePromptForRoom(basePrompt: string, roomType?: string): string {
   const roomEnhancements: Record<string, string> = {
-    kitchen: 'modern appliances, clean countertops, organized cabinets',
-    bedroom: 'comfortable bedding, soft lighting, organized closet',
-    bathroom: 'clean fixtures, spa-like atmosphere, fresh towels',
-    'living-room': 'comfortable seating, entertainment center, welcoming atmosphere',
-    'dining-room': 'elegant table setting, proper lighting, spacious feel',
-    office: 'organized workspace, professional appearance, good lighting',
-    garage: 'clean floor, organized storage, proper lighting',
+    kitchen: 'moderne hvitevarer, rene benkeplater, organiserte skap, skandinavisk kjøkkendesign',
+    bedroom: 'komfortabel seng med hvitt sengetøy, myk belysning, ryddig garderobe, rolig atmosfære',
+    bathroom: 'rene armaturer, spa-atmosfære, friske håndklær, minimalistisk design',
+    'living-room': 'komfortable sittemøbler, naturlige materialer, god romfølelse, hyggelig atmosfære',
+    'dining-room': 'elegant borddekking, godt lys over spisebordet, romslig følelse, skandinaviske designmøbler',
+    office: 'organisert arbeidsområde, profesjonelt utseende, god belysning, minimalistisk stil',
+    garage: 'rent gulv, organisert lagring, god belysning, ryddig',
   };
   
   if (roomType && roomEnhancements[roomType]) {

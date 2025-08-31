@@ -3,38 +3,57 @@
 import React, { useState } from 'react';
 import { ImageUpload } from '@/components/ImageUpload';
 import { PhotoEditorDashboard } from '@/components/PhotoEditorDashboard';
-import { ProjectSelector } from '@/components/ProjectSelector';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sparkles, Camera, Wand2, Info } from 'lucide-react';
+import { Info, Edit2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { updateProject } from '@/actions/project-actions';
+import { useRouter } from 'next/navigation';
 
 interface PhotoEditorWrapperProps {
   workspace: any;
-  currentProject: any;
-  projects: any[];
-  recentEdits: any[];
+  project: any;
+  projectPhotos?: any[];
   userId: string;
 }
 
 export function PhotoEditorWrapper({ 
   workspace, 
-  currentProject: initialProject, 
-  projects, 
-  recentEdits,
+  project,
+  projectPhotos = [],
   userId 
 }: PhotoEditorWrapperProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [currentProject, setCurrentProject] = useState(initialProject);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [projectName, setProjectName] = useState(project.name);
+  const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter();
   const remainingEdits = workspace.monthlyEditLimit - workspace.currentMonthEdits;
 
   const handleReset = () => {
     setSelectedFile(null);
   };
 
-  const handleProjectChange = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
-    if (project) {
-      setCurrentProject(project);
+  const handleSaveProjectName = async () => {
+    if (projectName.trim() === project.name) {
+      setIsEditingName(false);
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      await updateProject({
+        id: project.id,
+        name: projectName.trim(),
+      });
+      setIsEditingName(false);
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to update project name:', error);
+      setProjectName(project.name);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -44,29 +63,68 @@ export function PhotoEditorWrapper({
         imageFile={selectedFile} 
         onReset={handleReset}
         workspace={workspace}
-        project={currentProject}
+        project={project}
         userId={userId}
-        recentEdits={recentEdits}
+        recentEdits={[]}
       />
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header with Project Selector */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold">Photo Editor</h1>
-          <p className="text-muted-foreground">
-            Transform your real estate photos with AI-powered editing
-          </p>
+      {/* Header with Editable Project Name */}
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">Rediger nytt bilde</h1>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-muted-foreground">Eiendomsadresse:</label>
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveProjectName();
+                  if (e.key === 'Escape') {
+                    setProjectName(project.name);
+                    setIsEditingName(false);
+                  }
+                }}
+                className="w-64"
+                placeholder="f.eks. Storgata 15, Oslo"
+                autoFocus
+              />
+              <Button
+                size="sm"
+                onClick={handleSaveProjectName}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Lagrer...' : 'Lagre'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setProjectName(project.name);
+                  setIsEditingName(false);
+                }}
+                disabled={isSaving}
+              >
+                Avbryt
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{project.name}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsEditingName(true)}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
-        <ProjectSelector
-          projects={projects}
-          currentProject={currentProject}
-          workspaceId={workspace.id}
-          onProjectChange={handleProjectChange}
-        />
       </div>
 
       {/* Usage Alert */}
@@ -75,66 +133,28 @@ export function PhotoEditorWrapper({
         <AlertDescription>
           <span className="font-medium">
             {remainingEdits > 0 
-              ? `You have ${remainingEdits} edits remaining this month`
-              : 'You have reached your monthly edit limit'
+              ? `Du har ${remainingEdits} redigeringer igjen denne måneden`
+              : 'Du har nådd din månedlige grense'
             }
           </span>
           {' '}
-          ({workspace.currentMonthEdits}/{workspace.monthlyEditLimit} used)
+          ({workspace.currentMonthEdits}/{workspace.monthlyEditLimit} brukt)
           {workspace.subscriptionTier === 'FREE' && (
             <span className="ml-2">
-              • <a href="/dashboard/billing" className="underline">Upgrade</a> for more edits
+              • <a href="/dashboard/billing" className="underline">Oppgrader</a> for flere redigeringer
             </span>
           )}
         </AlertDescription>
       </Alert>
 
-      {/* Features */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6 text-center space-y-3">
-            <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900 w-fit mx-auto">
-              <Camera className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h3 className="font-semibold">Virtual Staging</h3>
-            <p className="text-sm text-muted-foreground">
-              Add furniture and decor to empty rooms
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 text-center space-y-3">
-            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900 w-fit mx-auto">
-              <Wand2 className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-            <h3 className="font-semibold">Smart Enhancement</h3>
-            <p className="text-sm text-muted-foreground">
-              Improve lighting and remove clutter
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 text-center space-y-3">
-            <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900 w-fit mx-auto">
-              <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h3 className="font-semibold">Professional Quality</h3>
-            <p className="text-sm text-muted-foreground">
-              Photorealistic results with AI
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Upload Area */}
       {remainingEdits > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Upload Photo</CardTitle>
+            <CardTitle>Last opp bilde</CardTitle>
             <CardDescription>
-              Select a photo to start editing. Current project: {currentProject.name}
+              Last opp bilder for denne eiendommen
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -144,44 +164,51 @@ export function PhotoEditorWrapper({
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Limit Reached</CardTitle>
+            <CardTitle>Månedlig grense nådd</CardTitle>
             <CardDescription>
-              You've used all your edits for this month. Your limit will reset at the beginning of next month.
+              Du har brukt alle dine redigeringer for denne måneden. Grensen tilbakestilles ved begynnelsen av neste måned.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <a href="/dashboard/billing">
               <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-                Upgrade Your Plan
+                Oppgrader din plan
               </button>
             </a>
           </CardContent>
         </Card>
       )}
 
-      {/* Recent Edits */}
-      {recentEdits.length > 0 && (
+      {/* Photos for this Property */}
+      {projectPhotos.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Recent Edits</CardTitle>
+            <CardTitle>Bilder for denne eiendommen</CardTitle>
             <CardDescription>
-              Your latest photo edits across all projects
+              Alle bilder og redigeringer for {project.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {recentEdits.slice(0, 8).map((edit) => (
-                <div key={edit.id} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-                  <img
-                    src={edit.editedUrl}
-                    alt={edit.photo.filename}
-                    className="object-cover w-full h-full"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                    <p className="text-white text-xs truncate">
-                      {new Date(edit.createdAt).toLocaleDateString()}
-                    </p>
+              {projectPhotos.map((photo) => (
+                <div key={photo.id} className="space-y-2">
+                  <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={photo.url}
+                      alt={photo.filename}
+                      className="object-cover w-full h-full"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                      <p className="text-white text-xs truncate">
+                        Original
+                      </p>
+                    </div>
                   </div>
+                  {photo.edits && photo.edits.length > 0 && (
+                    <div className="text-xs text-muted-foreground text-center">
+                      {photo.edits.length} redigering{photo.edits.length !== 1 ? 'er' : ''}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

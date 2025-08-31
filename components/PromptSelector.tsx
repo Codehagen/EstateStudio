@@ -23,29 +23,29 @@ export function PromptSelector({ onSelectPrompt }: PromptSelectorProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium">Quick Edit Templates</h3>
+      <h3 className="text-sm font-medium">Maler for rask redigering</h3>
       
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-5 w-full">
           <TabsTrigger value="staging" className="text-xs">
             {categoryIcons.staging}
-            <span className="ml-1 hidden sm:inline">Stage</span>
+            <span className="ml-1 hidden sm:inline">Møblering</span>
           </TabsTrigger>
           <TabsTrigger value="lighting" className="text-xs">
             {categoryIcons.lighting}
-            <span className="ml-1 hidden sm:inline">Light</span>
+            <span className="ml-1 hidden sm:inline">Belysning</span>
           </TabsTrigger>
           <TabsTrigger value="declutter" className="text-xs">
             {categoryIcons.declutter}
-            <span className="ml-1 hidden sm:inline">Clean</span>
+            <span className="ml-1 hidden sm:inline">Rydding</span>
           </TabsTrigger>
           <TabsTrigger value="exterior" className="text-xs">
             {categoryIcons.exterior}
-            <span className="ml-1 hidden sm:inline">Exterior</span>
+            <span className="ml-1 hidden sm:inline">Eksteriør</span>
           </TabsTrigger>
           <TabsTrigger value="repair" className="text-xs">
             {categoryIcons.repair}
-            <span className="ml-1 hidden sm:inline">Repair</span>
+            <span className="ml-1 hidden sm:inline">Oppussing</span>
           </TabsTrigger>
         </TabsList>
 

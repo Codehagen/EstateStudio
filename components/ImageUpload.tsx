@@ -60,18 +60,18 @@ export function ImageUpload({ onImageSelect, className }: ImageUploadProps) {
         </div>
         
         <h3 className="text-lg font-semibold mb-2">
-          {isDragActive ? 'Drop your photo here' : 'Upload Real Estate Photo'}
+          {isDragActive ? 'Slipp bildet ditt her' : 'Last opp eiendomsbilde'}
         </h3>
         
         <p className="text-sm text-muted-foreground mb-4">
-          Drag and drop or click to select
+          Dra og slipp eller klikk for å velge
         </p>
         
         <div className="flex flex-wrap gap-2 justify-center text-xs text-muted-foreground">
           <span className="px-2 py-1 bg-secondary rounded">JPEG</span>
           <span className="px-2 py-1 bg-secondary rounded">PNG</span>
           <span className="px-2 py-1 bg-secondary rounded">WebP</span>
-          <span className="px-2 py-1 bg-secondary rounded">Max 10MB</span>
+          <span className="px-2 py-1 bg-secondary rounded">Maks 10MB</span>
         </div>
       </div>
     </Card>

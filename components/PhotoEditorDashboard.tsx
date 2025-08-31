@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Loader2, Sparkles, History, ArrowLeft } from 'lucide-react';
-import { imageToBase64, downloadImage } from '@/lib/image-utils';
-import { PromptSelector } from './PromptSelector';
-import { EditHistoryDB } from './EditHistoryDB';
-import { ComparisonView } from './ComparisonView';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Download, Loader2, Sparkles, History, ArrowLeft } from "lucide-react";
+import { imageToBase64, downloadImage } from "@/lib/image-utils";
+import { PromptSelector } from "./PromptSelector";
+import { QuickEditCards } from "./QuickEditCards";
+import { EditHistoryDB } from "./EditHistoryDB";
+import { ComparisonView } from "./ComparisonView";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
 
 interface PhotoEditorDashboardProps {
   imageFile: File;
@@ -23,24 +24,27 @@ interface PhotoEditorDashboardProps {
   recentEdits: any[];
 }
 
-export function PhotoEditorDashboard({ 
-  imageFile, 
-  onReset, 
-  workspace, 
+export function PhotoEditorDashboard({
+  imageFile,
+  onReset,
+  workspace,
   project,
   userId,
-  recentEdits: initialEdits
+  recentEdits: initialEdits,
 }: PhotoEditorDashboardProps) {
-  const [originalImage, setOriginalImage] = useState<string>('');
-  const [editedImage, setEditedImage] = useState<string>('');
-  const [prompt, setPrompt] = useState<string>('');
+  const [originalImage, setOriginalImage] = useState<string>("");
+  const [editedImage, setEditedImage] = useState<string>("");
+  const [prompt, setPrompt] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [recentEdits, setRecentEdits] = useState(initialEdits);
-  const [activeView, setActiveView] = useState<'edit' | 'compare' | 'history'>('edit');
+  const [activeView, setActiveView] = useState<"edit" | "compare" | "history">(
+    "edit"
+  );
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const remainingEdits = workspace.monthlyEditLimit - workspace.currentMonthEdits;
+  const remainingEdits =
+    workspace.monthlyEditLimit - workspace.currentMonthEdits;
 
   useEffect(() => {
     const loadImage = async () => {
@@ -52,19 +56,21 @@ export function PhotoEditorDashboard({
 
   const handleEdit = async () => {
     if (!prompt.trim()) return;
-    
+
     if (remainingEdits <= 0) {
-      setError('You have reached your monthly edit limit. Please upgrade your plan to continue.');
+      setError(
+        "Du har nådd din månedlige grense. Vennligst oppgrader planen din for å fortsette."
+      );
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('/api/edit-photo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/edit-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: originalImage,
           prompt: prompt.trim(),
@@ -73,17 +79,21 @@ export function PhotoEditorDashboard({
       });
 
       const data = await response.json();
-      
+
       if (data.success && data.editedImage) {
         setEditedImage(data.editedImage);
         // Refresh the page to update the edit count and history
         router.refresh();
       } else {
-        throw new Error(data.error || 'Failed to edit image');
+        throw new Error(data.error || "Kunne ikke redigere bildet");
       }
     } catch (error) {
-      console.error('Edit failed:', error);
-      setError(error instanceof Error ? error.message : 'Failed to edit photo. Please try again.');
+      console.error("Edit failed:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Kunne ikke redigere bildet. Vennligst prøv igjen."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -106,14 +116,14 @@ export function PhotoEditorDashboard({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold">Editing Photo</h2>
+            <h2 className="text-2xl font-bold">Redigerer bilde</h2>
             <p className="text-sm text-muted-foreground">
-              Project: {project.name} • {remainingEdits} edits remaining
+              Eiendom: {project.name} • {remainingEdits} redigeringer igjen
             </p>
           </div>
         </div>
         <Button variant="outline" onClick={onReset}>
-          Upload New Photo
+          Last opp nytt bilde
         </Button>
       </div>
 
@@ -127,14 +137,14 @@ export function PhotoEditorDashboard({
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="edit">
             <Sparkles className="w-4 h-4 mr-2" />
-            Edit
+            Rediger
           </TabsTrigger>
           <TabsTrigger value="compare" disabled={!editedImage}>
-            Compare
+            Sammenlign
           </TabsTrigger>
           <TabsTrigger value="history">
             <History className="w-4 h-4 mr-2" />
-            History
+            Historikk
           </TabsTrigger>
         </TabsList>
 
@@ -142,7 +152,7 @@ export function PhotoEditorDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Original Photo</CardTitle>
+                <CardTitle>Originalbilde</CardTitle>
               </CardHeader>
               <CardContent>
                 {originalImage && (
@@ -160,7 +170,7 @@ export function PhotoEditorDashboard({
 
             <Card>
               <CardHeader>
-                <CardTitle>Edited Photo</CardTitle>
+                <CardTitle>Redigert bilde</CardTitle>
               </CardHeader>
               <CardContent>
                 {editedImage ? (
@@ -174,17 +184,21 @@ export function PhotoEditorDashboard({
                       />
                     </div>
                     <Button
-                      onClick={() => downloadImage(editedImage, `edited-${Date.now()}.jpg`)}
+                      onClick={() =>
+                        downloadImage(editedImage, `edited-${Date.now()}.jpg`)
+                      }
                       className="w-full"
                       variant="outline"
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      Download Edited Photo
+                      Last ned redigert bilde
                     </Button>
                   </div>
                 ) : (
                   <div className="aspect-video rounded-lg bg-muted flex items-center justify-center">
-                    <p className="text-muted-foreground">Edit preview will appear here</p>
+                    <p className="text-muted-foreground">
+                      Forhåndsvisning av redigering vises her
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -193,37 +207,48 @@ export function PhotoEditorDashboard({
 
           <Card>
             <CardHeader>
-              <CardTitle>Edit Instructions</CardTitle>
+              <CardTitle>Redigeringsinstruksjoner</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <PromptSelector onSelectPrompt={handlePromptSelect} />
-              
-              <div className="space-y-2">
+              <QuickEditCards onSelectPrompt={handlePromptSelect} />
+
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Vis flere alternativer...
+                </summary>
+                <div className="mt-3">
+                  <PromptSelector onSelectPrompt={handlePromptSelect} />
+                </div>
+              </details>
+
+              <div className="space-y-2 mt-4">
                 <Textarea
-                  placeholder="Describe how you want to edit the photo..."
+                  placeholder="Beskriv hvordan du ønsker å redigere bildet..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   rows={4}
                   className="resize-none"
                 />
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Cost per edit: ${0.039}
-                  </p>
+{/*                  <p className="text-sm text-muted-foreground">
+                    Kostnad per redigering: ${0.039}
+                  </p> */}
                   <Button
                     onClick={handleEdit}
-                    disabled={isLoading || !prompt.trim() || remainingEdits <= 0}
+                    disabled={
+                      isLoading || !prompt.trim() || remainingEdits <= 0
+                    }
                     size="lg"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
+                        Behandler...
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4 mr-2" />
-                        Apply AI Edit
+                        Bruk AI-redigering
                       </>
                     )}
                   </Button>
