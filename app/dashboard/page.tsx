@@ -2,13 +2,19 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { signOut } from "@/actions/auth-actions";
 import Link from "next/link";
 
 export default async function Dashboard() {
   const session = await getSession();
-  
+
   if (!session) {
     redirect("/sign-in");
   }
@@ -55,30 +61,12 @@ export default async function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold">AI Photo Editor</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                {session.user.email}
-              </span>
-              <SignOutButton />
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">
             Welcome back, {session.user.name || "User"}!
           </h2>
-          <p className="text-gray-600 mt-1">
-            Workspace: {workspace.name}
-          </p>
+          <p className="text-gray-600 mt-1">Workspace: {workspace.name}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -91,7 +79,8 @@ export default async function Dashboard() {
                 {workspace.subscriptionTier.toLowerCase()}
               </p>
               <p className="text-sm text-gray-600 mt-1">
-                {workspace.currentMonthEdits} / {workspace.monthlyEditLimit} edits this month
+                {workspace.currentMonthEdits} / {workspace.monthlyEditLimit}{" "}
+                edits this month
               </p>
             </CardContent>
           </Card>
@@ -104,9 +93,7 @@ export default async function Dashboard() {
               <p className="text-2xl font-semibold">
                 {workspace._count.photos}
               </p>
-              <p className="text-sm text-gray-600 mt-1">
-                Across all projects
-              </p>
+              <p className="text-sm text-gray-600 mt-1">Across all projects</p>
             </CardContent>
           </Card>
 
@@ -118,9 +105,7 @@ export default async function Dashboard() {
               <p className="text-2xl font-semibold">
                 {workspace.projects.length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">
-                Active projects
-              </p>
+              <p className="text-sm text-gray-600 mt-1">Active projects</p>
             </CardContent>
           </Card>
         </div>
@@ -134,9 +119,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <Link href="/dashboard/editor">
-              <Button size="lg">
-                Open Photo Editor
-              </Button>
+              <Button size="lg">Open Photo Editor</Button>
             </Link>
           </CardContent>
         </Card>
@@ -177,11 +160,7 @@ export default async function Dashboard() {
 function SignOutButton() {
   return (
     <form action={signOut}>
-      <Button
-        type="submit"
-        variant="outline"
-        size="sm"
-      >
+      <Button type="submit" variant="outline" size="sm">
         Sign Out
       </Button>
     </form>
