@@ -9,7 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { signOut } from "@/actions/auth-actions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import Link from "next/link";
 
 export default async function Dashboard() {
@@ -30,9 +37,16 @@ export default async function Dashboard() {
     },
     include: {
       projects: {
-        take: 5,
+        take: 10,
         orderBy: {
           createdAt: "desc",
+        },
+        include: {
+          _count: {
+            select: {
+              photos: true,
+            },
+          },
         },
       },
       _count: {
@@ -62,92 +76,90 @@ export default async function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Welcome back, {session.user.name || "User"}!
-          </h2>
-          <p className="text-gray-600 mt-1">Workspace: {workspace.name}</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Velkommen tilbake, {session.user.name || "Bruker"}!
+            </h2>
+            <p className="text-gray-600 mt-1">Arbeidsområde: {workspace.name}</p>
+          </div>
+          <Link href="/dashboard/editor">
+            <Button size="lg">Rediger nytt bilde</Button>
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Subscription</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold capitalize">
-                {workspace.subscriptionTier.toLowerCase()}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                {workspace.currentMonthEdits} / {workspace.monthlyEditLimit}{" "}
-                edits this month
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Total Photos</CardTitle>
+              <CardTitle className="text-lg">Totalt antall bilder</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-semibold">
                 {workspace._count.photos}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Across all projects</p>
+              <p className="text-sm text-gray-600 mt-1">På tvers av alle eiendommer</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Projects</CardTitle>
+              <CardTitle className="text-lg">Eiendommer</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-semibold">
                 {workspace.projects.length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Active projects</p>
+              <p className="text-sm text-gray-600 mt-1">Aktive eiendommer</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Start Editing</CardTitle>
-            <CardDescription>
-              Upload a photo to enhance it with AI-powered editing
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/dashboard/editor">
-              <Button size="lg">Open Photo Editor</Button>
-            </Link>
-          </CardContent>
-        </Card>
 
         {workspace.projects.length > 0 && (
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Recent Projects</CardTitle>
+              <CardTitle>Nylige eiendommer</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {workspace.projects.map((project) => (
-                  <div
-                    key={project.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
-                  >
-                    <div>
-                      <p className="font-medium">{project.name}</p>
-                      <p className="text-sm text-gray-600">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Eiendomsadresse</TableHead>
+                    <TableHead>Beskrivelse</TableHead>
+                    <TableHead>Bilder</TableHead>
+                    <TableHead>Opprettet</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {workspace.projects.map((project) => (
+                    <TableRow key={project.id} className="cursor-pointer hover:bg-gray-50">
+                      <TableCell className="font-medium">
+                        <Link 
+                          href={`/dashboard/editor/${project.id}`}
+                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          {project.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-gray-600">
                         {project.description}
-                      </p>
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      {new Date(project.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                          {project._count.photos} bilder
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-gray-500">
+                        {new Date(project.createdAt).toLocaleDateString('no-NO', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         )}
@@ -156,13 +168,3 @@ export default async function Dashboard() {
   );
 }
 
-// Client component for sign out button
-function SignOutButton() {
-  return (
-    <form action={signOut}>
-      <Button type="submit" variant="outline" size="sm">
-        Sign Out
-      </Button>
-    </form>
-  );
-}

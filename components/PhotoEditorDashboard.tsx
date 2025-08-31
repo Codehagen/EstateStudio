@@ -229,10 +229,7 @@ export function PhotoEditorDashboard({
                   rows={4}
                   className="resize-none"
                 />
-                <div className="flex items-center justify-between">
-{/*                  <p className="text-sm text-muted-foreground">
-                    Kostnad per redigering: ${0.039}
-                  </p> */}
+                <div className="flex items-center justify-end">
                   <Button
                     onClick={handleEdit}
                     disabled={

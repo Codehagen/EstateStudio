@@ -48,12 +48,12 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Bilderedigering",
+      title: "Rediger nytt bilde",
       url: "/dashboard/editor",
       icon: IconPhoto,
     },
     {
-      title: "Prosjekter",
+      title: "Eiendommer",
       url: "/dashboard/projects",
       icon: IconFolder,
     },
@@ -178,7 +178,7 @@ export function AppSidebar({
             >
               <a href="/dashboard">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Eiendomsfoto AI</span>
+                <span className="text-base font-semibold">Acme Inc.</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
