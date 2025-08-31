@@ -10,6 +10,7 @@ interface PageProps {
 }
 
 export default async function ProjectEditorPage({ params }: PageProps) {
+  const { projectId } = await params;
   const session = await getSession();
   
   if (!session) {
@@ -19,7 +20,7 @@ export default async function ProjectEditorPage({ params }: PageProps) {
   // Get the specific project with workspace info
   const project = await prisma.project.findUnique({
     where: {
-      id: params.projectId,
+      id: projectId,
     },
     include: {
       workspace: {
